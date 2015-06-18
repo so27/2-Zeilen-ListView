@@ -1,0 +1,115 @@
+﻿Version=5.02
+NumberOfModules=0
+Build1=Default,b4a.example
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="14"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:theme, "@android:style/Theme.Holo")~\n~'End of default text.~\n~
+IconFile=
+NumberOfFiles=1
+File1=Main.bal
+NumberOfLibraries=2
+Library1=core
+Library2=dialogs
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: 2-Zeilen-ListView
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: False
+	#IncludeTitle: True
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+  	
+	Dim lstText01 As List   ' Eine Liste wird angelegt
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
+
+	Private ListView1 As ListView
+	Private Button1 As Button
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	
+	Activity.LoadLayout("Main") ' Main = Das Layout, in welchem das ListView verwendet wird
+	ListView1.Width=100%x ' ListView wird über die gesamte Bildschirmbreite verteilt
+
+		If File.Exists(File.DirInternal, "Liste.lst") = True Then ' Wenn die Datei Liste.lst vorhanden ist, dann soll diese auch geladen werden
+			lstText01 = File.ReadList(File.DirInternal, "Liste.lst") ' Öffnen der Datei Liste.lst in die Liste lstText01
+		Else
+			lstText01.Initialize ' Wenn die Datei nicht vorhanden ist, dann soll die Liste hier initialisiert werden
+		End If
+
+	FillListView	' Sub welche das ListView Objekt mit den Daten füllt
+
+End Sub
+
+Sub Activity_Resume
+
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	File.WriteList(File.DirInternal, "Liste.lst", ListView1) ' Speichert die Liste, wenn die App stillsteht.
+End Sub
+
+Sub Activity_KeyPress (KeyCode As Int) As Boolean 
+	If KeyCode = KeyCodes.KEYCODE_BACK Then	' Wenn der KeyCode Back (Zurück-Knopf) gedrückt wird
+
+   	Activity.finish ' Beenden der App
+
+	End If
+End Sub
+
+Sub FillListView
+
+	Dim A As String
+	Dim B1 As String
+	Dim text As String
+	' Drei Variablen anlegen um die Daten zu verarbeiten
+	
+	ListView1.Clear ' Löschen des gesamten ListView-Objekts
+	
+	For i = 0 To lstText01.Size - 1 ' Schleife, welche die Liste lstText01 durchläuft
+		
+		text=lstText01.Get(i) ' Zeile x aus der Liste an die Variable text übergeben
+		A=	text.SubString2(0,text.LastIndexOf("|")-1) ' Übernimmt den gesamten Text bis zum Trennzeichen in die Variable A
+    	B1 = text.SubString(text.IndexOf("|")+2) ' Übernimmt den gesamten Text von ab dem letzten Trennzeichen in die Variable B1
+		
+		ListView1.AddTwoLines(A,B1) ' Übergeben der Variablen A und B1 in die jeweiligen Zeilen des Listviews
+	Next
+	
+	File.WriteList(File.DirInternal, "Liste.lst", lstText01)
+End Sub
+
+Sub Button1_Click
+	Dim id As InputDialog
+	Dim id2 As InputDialog
+	' Es werden nun zwei Eingabefelder benötigt. Ich verwende in diesem Beispiel einfach den InputDialog
+	
+	id.HintColor = Colors.ARGB(196, 255, 140, 0)
+
+	ret = DialogResponse.CANCEL
+	ret = id.Show("Geben Sie die erste Zeile ein.", "1. Eingabe", "OK", "Abbrechen", "",  Null) ' Statt NULL könnte auch ein Icon mit LoadBitmap(File.DirAssets, "Dateiname.jpg") eingefügt werdne
+		
+	If ret=-1 Then ' Wenn auf OK getippt wurde...
+			
+			ret2= id2.Show("Geben Sie die zweite Zeile ein.", "2. Eingabe", "OK", "Abbrechen","",  Null) ' LoadBitmap(File.DirAssets,"4_collections_go_to_today.png")
+			If ret2=DialogResponse.CANCEL Then Return 
+					
+		lstText01.InsertAt(0, id.Input & "||" & id2.Input) ' Wenn erneut auf OK getippt wurde, wird ID und ID2 in die Liste lstText01 eingefügt
+		
+		FillListView ' Jetzt muss die Liste nur noch an das ListView Objekt übergeben werden
+	End If
+		
+	
+	If ret=-3 Then Return ' Wenn Abbrechen getippt wurde, dann passiert nichts.
+End Sub
